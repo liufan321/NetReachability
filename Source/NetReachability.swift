@@ -9,10 +9,10 @@
 import Foundation
 import SystemConfiguration
 
-enum NetworkStatus: Printable {
+public enum NetworkStatus: Printable {
     case NotReachable, ReachableViaWiFi, ReachableViaWWAN
     
-    var description: String {
+    public var description: String {
         switch self {
         case .ReachableViaWWAN:
             return "2G/3G/4G"
@@ -24,14 +24,18 @@ enum NetworkStatus: Printable {
     }
 }
 
-class NetReachability {
+public class NetReachability {
     
-    class func reachabilityWithHostName(hostName: String) -> NetworkStatus {
+    public class func reachabilityWithHostName(hostName: String) -> NetworkStatus {
         let reachability = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault , hostName.cStringUsingEncoding(NSUTF8StringEncoding)!).takeRetainedValue()
         
         var flags: SCNetworkReachabilityFlags = 0
         
         let result = SCNetworkReachabilityGetFlags(reachability, &flags)
+        
+        if (flags & SCNetworkReachabilityFlags(kSCNetworkReachabilityFlagsReachable) == 0) {
+            return NetworkStatus.NotReachable;
+        }
         
         var returnValue = NetworkStatus.NotReachable;
         
