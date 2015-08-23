@@ -11,11 +11,31 @@ import NetReachability
 
 class ViewController: UIViewController {
 
-    @IBOutlet weak var hostnameText: UITextField!
     @IBOutlet weak var networkStatusLabel: UILabel!
     
+    private lazy var reachability: NetReachability = NetReachability(hostname: "www.apple.com")
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "reachabilityChanged", name: FFReachabilityChangedNotification, object: nil)
+        reachability.startNotifier()
+    }
+    
+    deinit {
+        NSNotificationCenter.defaultCenter().removeObserver(self, name: FFReachabilityChangedNotification, object: nil)
+    }
+    
+    func reachabilityChanged() {
+        updateUI()
+    }
+    
     @IBAction func checkReachablity() {
-        networkStatusLabel.text = "\(NetReachability.reachabilityWithHostName(hostnameText.text!))"
+        updateUI()
+    }
+    
+    func updateUI() {
+        networkStatusLabel.text = reachability.currentReachabilityStatus.description
     }
 }
 
