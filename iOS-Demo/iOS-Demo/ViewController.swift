@@ -15,7 +15,7 @@ class ViewController: UIViewController {
     @IBOutlet weak var networkStatusLabel: UILabel!
     
     @IBAction func checkReachablity() {
-        networkStatusLabel.text = "\(NetReachability.reachabilityWithHostName(hostnameText.text))"
+        networkStatusLabel.text = "\(NetReachability.reachabilityWithHostName(hostnameText.text!))"
     }
 }
 

@@ -9,7 +9,7 @@
 import Foundation
 import SystemConfiguration
 
-public enum NetworkStatus: Printable {
+public enum NetworkStatus: CustomStringConvertible {
     case NotReachable, ReachableViaWiFi, ReachableViaWWAN
     
     public var description: String {
@@ -27,31 +27,29 @@ public enum NetworkStatus: Printable {
 public class NetReachability {
     
     public class func reachabilityWithHostName(hostName: String) -> NetworkStatus {
-        let reachability = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault , hostName.cStringUsingEncoding(NSUTF8StringEncoding)!).takeRetainedValue()
+        let reachability = SCNetworkReachabilityCreateWithName(nil, hostName)!
         
-        var flags: SCNetworkReachabilityFlags = 0
+        var flags = SCNetworkReachabilityFlags(rawValue: 0)
+        SCNetworkReachabilityGetFlags(reachability, &flags)
         
-        let result = SCNetworkReachabilityGetFlags(reachability, &flags)
-        
-        if (flags & SCNetworkReachabilityFlags(kSCNetworkReachabilityFlagsReachable) == 0) {
+        if (flags.rawValue & SCNetworkReachabilityFlags.Reachable.rawValue == 0) {
             return NetworkStatus.NotReachable;
         }
         
         var returnValue = NetworkStatus.NotReachable;
-        
-        if flags & SCNetworkReachabilityFlags(kSCNetworkReachabilityFlagsConnectionRequired) == 0 {
+        if flags.rawValue & SCNetworkReachabilityFlags.ConnectionRequired.rawValue == 0 {
             returnValue = NetworkStatus.ReachableViaWiFi
         }
         
-        if flags & SCNetworkReachabilityFlags(kSCNetworkReachabilityFlagsConnectionOnDemand) != 0 ||
-            flags & SCNetworkReachabilityFlags(kSCNetworkReachabilityFlagsConnectionOnTraffic) != 0 {
-            
-                if flags & SCNetworkReachabilityFlags(kSCNetworkReachabilityFlagsInterventionRequired) == 0 {
+        if flags.rawValue & SCNetworkReachabilityFlags.ConnectionOnDemand.rawValue != 0
+            || flags.rawValue & SCNetworkReachabilityFlags.ConnectionOnTraffic.rawValue != 0 {
+                
+                if flags.rawValue & SCNetworkReachabilityFlags.InterventionRequired.rawValue == 0 {
                     returnValue = NetworkStatus.ReachableViaWiFi
                 }
         }
         
-        if (flags & SCNetworkReachabilityFlags(kSCNetworkReachabilityFlagsIsWWAN)) == SCNetworkReachabilityFlags(kSCNetworkReachabilityFlagsIsWWAN) {
+        if (flags.rawValue & SCNetworkReachabilityFlags.IsWWAN.rawValue) == SCNetworkReachabilityFlags.IsWWAN.rawValue {
             returnValue = NetworkStatus.ReachableViaWWAN
         }
         
